@@ -75,9 +75,9 @@ with st.sidebar:
     # Subtitle upload
     st.subheader("2. رفع ملف الترجمة")
     subtitle_file = st.file_uploader(
-        "اختر ملف الترجمة SRT",
-        type=['srt'],
-        help="يجب أن يكون الملف بترميز UTF-8"
+        "اختر ملف الترجمة",
+        type=['srt', 'ass', 'ssa', 'vtt'],
+        help="الصيغ المدعومة: SRT, ASS, SSA, VTT (ترميز UTF-8)"
     )
     
     # Audio upload
@@ -107,14 +107,21 @@ if video_file:
             st.write(f"**حجم الملف:** {video_info['size']:.2f} MB")
 
 if subtitle_file:
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.srt', mode='w', encoding='utf-8') as tmp_sub:
+    # Get file extension
+    file_ext = subtitle_file.name.split('.')[-1].lower()
+    
+    with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{file_ext}', mode='w', encoding='utf-8') as tmp_sub:
         content = subtitle_file.read().decode('utf-8')
         tmp_sub.write(content)
         st.session_state.subtitle_file_path = tmp_sub.name
+        st.session_state.subtitle_format = file_ext
     
-    # Parse subtitles
-    st.session_state.subtitles_data = processors['subtitle'].parse_srt(st.session_state.subtitle_file_path)
-    st.success(f"✅ تم تحميل ملف الترجمة ({len(st.session_state.subtitles_data)} ترجمة)")
+    # Parse subtitles based on format
+    st.session_state.subtitles_data = processors['subtitle'].parse_subtitle_file(
+        st.session_state.subtitle_file_path,
+        file_format=file_ext
+    )
+    st.success(f"✅ تم تحميل ملف الترجمة {file_ext.upper()} ({len(st.session_state.subtitles_data)} ترجمة)")
 
 if audio_file:
     with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{audio_file.name.split(".")[-1]}') as tmp_audio:
@@ -133,56 +140,114 @@ if audio_file:
 if st.session_state.video_file_path and st.session_state.subtitle_file_path:
     
     # Tabs for different sections
-    tab1, tab2, tab3 = st.tabs(["⚙️ إعدادات التحكم", "👀 معاينة الفيديو", "💾 التصدير والحفظ"])
+    tab1, tab2, tab3, tab4 = st.tabs(["⚙️ إعدادات التحكم", "✏️ تحرير الترجمة", "👀 معاينة الفيديو", "💾 التصدير والحفظ"])
     
     with tab1:
         st.header("إعدادات التحكم في الترجمة والصوت")
+        
+        # Initialize settings keys if not present
+        if 'setting_font_family' not in st.session_state:
+            st.session_state.setting_font_family = "Noto Sans Arabic"
+        if 'setting_font_size' not in st.session_state:
+            st.session_state.setting_font_size = 28
+        if 'setting_text_color' not in st.session_state:
+            st.session_state.setting_text_color = "#FFFFFF"
+        if 'setting_bg_color' not in st.session_state:
+            st.session_state.setting_bg_color = "#000000"
+        if 'setting_stroke_width' not in st.session_state:
+            st.session_state.setting_stroke_width = 2
+        if 'setting_stroke_color' not in st.session_state:
+            st.session_state.setting_stroke_color = "#000000"
+        if 'setting_bg_opacity' not in st.session_state:
+            st.session_state.setting_bg_opacity = 0.7
+        if 'setting_shadow_enabled' not in st.session_state:
+            st.session_state.setting_shadow_enabled = True
+        if 'setting_shadow_offset_x' not in st.session_state:
+            st.session_state.setting_shadow_offset_x = 2
+        if 'setting_shadow_offset_y' not in st.session_state:
+            st.session_state.setting_shadow_offset_y = 2
+        if 'setting_shadow_blur' not in st.session_state:
+            st.session_state.setting_shadow_blur = 3
         
         col1, col2 = st.columns(2)
         
         with col1:
             st.subheader("🎨 تنسيق النص")
             
-            # Font settings
+            # Font settings with keys
+            font_options = ["Arial", "Noto Sans Arabic", "Amiri", "Cairo", "Tajawal"]
             font_family = st.selectbox(
                 "نوع الخط",
-                ["Arial", "Noto Sans Arabic", "Amiri", "Cairo", "Tajawal"],
-                index=1
+                font_options,
+                index=font_options.index(st.session_state.setting_font_family) if st.session_state.setting_font_family in font_options else 1,
+                key='setting_font_family'
             )
             
-            font_size = st.slider("حجم الخط", 16, 72, 28)
+            font_size = st.slider("حجم الخط", 16, 72, key='setting_font_size')
             
             # Colors
-            text_color = st.color_picker("لون النص", "#FFFFFF")
-            bg_color = st.color_picker("لون الخلفية", "#000000")
+            text_color = st.color_picker("لون النص", key='setting_text_color')
+            bg_color = st.color_picker("لون الخلفية", key='setting_bg_color')
             
             # Stroke/Border
-            stroke_width = st.slider("سمك الحدود", 0, 5, 2)
-            stroke_color = st.color_picker("لون الحدود", "#000000")
+            stroke_width = st.slider("سمك الحدود", 0, 5, key='setting_stroke_width')
+            stroke_color = st.color_picker("لون الحدود", key='setting_stroke_color')
             
             # Background opacity
-            bg_opacity = st.slider("شفافية الخلفية", 0.0, 1.0, 0.7)
+            bg_opacity = st.slider("شفافية الخلفية", 0.0, 1.0, key='setting_bg_opacity')
             
+            # Text effects
+            st.subheader("🌟 تأثيرات النص")
+            enable_shadow = st.checkbox("تفعيل الظل", key='setting_shadow_enabled')
+            if enable_shadow:
+                shadow_offset_x = st.slider("إزاحة الظل أفقياً", -10, 10, key='setting_shadow_offset_x')
+                shadow_offset_y = st.slider("إزاحة الظل عمودياً", -10, 10, key='setting_shadow_offset_y')
+                shadow_blur = st.slider("ضبابية الظل", 0, 10, key='setting_shadow_blur')
+            else:
+                shadow_offset_x = 0
+                shadow_offset_y = 0
+                shadow_blur = 0
+            
+        # Initialize position settings
+        if 'setting_position' not in st.session_state:
+            st.session_state.setting_position = "أسفل"
+        if 'setting_alignment' not in st.session_state:
+            st.session_state.setting_alignment = "يمين"
+        if 'setting_margin_horizontal' not in st.session_state:
+            st.session_state.setting_margin_horizontal = 20
+        if 'setting_margin_vertical' not in st.session_state:
+            st.session_state.setting_margin_vertical = 30
+        if 'setting_subtitle_offset' not in st.session_state:
+            st.session_state.setting_subtitle_offset = 0.0
+        if 'setting_audio_offset' not in st.session_state:
+            st.session_state.setting_audio_offset = 0.0
+        if 'setting_audio_volume' not in st.session_state:
+            st.session_state.setting_audio_volume = 1.0
+        
         with col2:
             st.subheader("📍 موضع النص")
             
             # Position
+            position_options = ["أسفل", "وسط", "أعلى"]
             position = st.selectbox(
                 "موقع الترجمة",
-                ["أسفل", "وسط", "أعلى"],
-                index=0
+                position_options,
+                index=position_options.index(st.session_state.setting_position) if st.session_state.setting_position in position_options else 0,
+                key='setting_position'
             )
             
             # Alignment
+            alignment_options = ["يمين", "وسط", "يسار"]
             alignment = st.selectbox(
                 "محاذاة النص",
-                ["يمين", "وسط", "يسار"],
-                index=0
+                alignment_options,
+                index=alignment_options.index(st.session_state.setting_alignment) if st.session_state.setting_alignment in alignment_options else 0,
+                key='setting_alignment'
             )
             
             # Margins
-            margin_horizontal = st.slider("الهامش الأفقي", 10, 100, 20)
-            margin_vertical = st.slider("الهامش العمودي", 10, 100, 30)
+            margin_horizontal = st.slider("الهامش الأفقي", 10, 100, key='setting_margin_horizontal')
+            margin_vertical = st.slider("الهامش العمودي", 10, 100, key='setting_margin_vertical')
         
         st.subheader("⏱️ ضبط التوقيت")
         
@@ -193,9 +258,9 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
                 "تعديل توقيت الترجمة (بالثواني)",
                 min_value=-30.0,
                 max_value=30.0,
-                value=0.0,
                 step=0.1,
-                help="قيمة موجبة للتأخير، قيمة سالبة للتقديم"
+                help="قيمة موجبة للتأخير، قيمة سالبة للتقديم",
+                key='setting_subtitle_offset'
             )
             
         with col4:
@@ -204,12 +269,12 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
                     "تعديل توقيت الصوت (بالثواني)",
                     min_value=-30.0,
                     max_value=30.0,
-                    value=0.0,
                     step=0.1,
-                    help="قيمة موجبة للتأخير، قيمة سالبة للتقديم"
+                    help="قيمة موجبة للتأخير، قيمة سالبة للتقديم",
+                    key='setting_audio_offset'
                 )
                 
-                audio_volume = st.slider("مستوى الصوت", 0.0, 2.0, 1.0, 0.1)
+                audio_volume = st.slider("مستوى الصوت", 0.0, 2.0, 0.1, key='setting_audio_volume')
             else:
                 audio_offset = 0.0
                 audio_volume = 1.0
@@ -229,10 +294,210 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
             'margin_vertical': margin_vertical,
             'subtitle_offset': subtitle_offset,
             'audio_offset': audio_offset,
-            'audio_volume': audio_volume
+            'audio_volume': audio_volume,
+            'shadow_enabled': enable_shadow,
+            'shadow_offset_x': shadow_offset_x,
+            'shadow_offset_y': shadow_offset_y,
+            'shadow_blur': shadow_blur
         }
+        
+        # Settings save/load section
+        st.markdown("---")
+        st.subheader("💾 حفظ وتحميل الإعدادات")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            preset_name = st.text_input("اسم المجموعة", value="my_preset", help="اسم لحفظ الإعدادات الحالية")
+            if st.button("💾 حفظ الإعدادات الحالية"):
+                # Save settings to JSON file
+                import json
+                presets_file = "subtitle_presets.json"
+                
+                # Load existing presets
+                if os.path.exists(presets_file):
+                    with open(presets_file, 'r', encoding='utf-8') as f:
+                        presets = json.load(f)
+                else:
+                    presets = {}
+                
+                # Add current settings
+                presets[preset_name] = st.session_state.subtitle_settings
+                
+                # Save back to file
+                with open(presets_file, 'w', encoding='utf-8') as f:
+                    json.dump(presets, f, ensure_ascii=False, indent=2)
+                
+                st.success(f"✅ تم حفظ الإعدادات باسم '{preset_name}'")
+        
+        with col2:
+            # Load presets
+            presets_file = "subtitle_presets.json"
+            if os.path.exists(presets_file):
+                with open(presets_file, 'r', encoding='utf-8') as f:
+                    presets = json.load(f)
+                
+                if presets:
+                    selected_preset = st.selectbox("اختر إعدادات محفوظة", list(presets.keys()))
+                    if st.button("📥 تحميل الإعدادات"):
+                        # Load the selected preset into all session_state keys
+                        preset_data = presets[selected_preset]
+                        
+                        # Update all widget keys
+                        st.session_state.setting_font_family = preset_data.get('font_family', 'Noto Sans Arabic')
+                        st.session_state.setting_font_size = preset_data.get('font_size', 28)
+                        st.session_state.setting_text_color = preset_data.get('text_color', '#FFFFFF')
+                        st.session_state.setting_bg_color = preset_data.get('bg_color', '#000000')
+                        st.session_state.setting_stroke_width = preset_data.get('stroke_width', 2)
+                        st.session_state.setting_stroke_color = preset_data.get('stroke_color', '#000000')
+                        st.session_state.setting_bg_opacity = preset_data.get('bg_opacity', 0.7)
+                        st.session_state.setting_shadow_enabled = preset_data.get('shadow_enabled', True)
+                        st.session_state.setting_shadow_offset_x = preset_data.get('shadow_offset_x', 2)
+                        st.session_state.setting_shadow_offset_y = preset_data.get('shadow_offset_y', 2)
+                        st.session_state.setting_shadow_blur = preset_data.get('shadow_blur', 3)
+                        st.session_state.setting_position = preset_data.get('position', 'أسفل')
+                        st.session_state.setting_alignment = preset_data.get('alignment', 'يمين')
+                        st.session_state.setting_margin_horizontal = preset_data.get('margin_horizontal', 20)
+                        st.session_state.setting_margin_vertical = preset_data.get('margin_vertical', 30)
+                        st.session_state.setting_subtitle_offset = preset_data.get('subtitle_offset', 0.0)
+                        st.session_state.setting_audio_offset = preset_data.get('audio_offset', 0.0)
+                        st.session_state.setting_audio_volume = preset_data.get('audio_volume', 1.0)
+                        
+                        st.success(f"✅ تم تحميل الإعدادات '{selected_preset}'")
+                        st.rerun()
+                else:
+                    st.info("لا توجد إعدادات محفوظة بعد")
+            else:
+                st.info("لا توجد إعدادات محفوظة بعد")
     
     with tab2:
+        st.header("تحرير الترجمة")
+        
+        st.markdown("يمكنك تعديل نص الترجمات أو توقيتها مباشرة من هنا")
+        
+        # Search/filter functionality
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            search_term = st.text_input("🔍 بحث في الترجمات", placeholder="ابحث عن نص معين...")
+        with col2:
+            items_per_page = st.selectbox("عدد الترجمات", [5, 10, 20, 50], index=1)
+        
+        # Filter subtitles based on search
+        filtered_subs = st.session_state.subtitles_data
+        if search_term:
+            filtered_subs = [sub for sub in st.session_state.subtitles_data 
+                           if search_term.lower() in sub['text'].lower()]
+        
+        st.write(f"عدد الترجمات: {len(filtered_subs)} من أصل {len(st.session_state.subtitles_data)}")
+        
+        # Pagination
+        total_pages = (len(filtered_subs) - 1) // items_per_page + 1
+        page = st.number_input("الصفحة", min_value=1, max_value=max(1, total_pages), value=1, step=1)
+        
+        start_idx = (page - 1) * items_per_page
+        end_idx = min(start_idx + items_per_page, len(filtered_subs))
+        
+        # Display subtitle editor
+        st.markdown("---")
+        
+        # Track if any changes were made
+        changes_made = False
+        
+        for i in range(start_idx, end_idx):
+            sub = filtered_subs[i]
+            original_idx = st.session_state.subtitles_data.index(sub)
+            
+            with st.expander(f"الترجمة #{sub['index']}: {sub['start']:.2f}s - {sub['end']:.2f}s"):
+                col1, col2, col3 = st.columns([2, 1, 1])
+                
+                with col1:
+                    new_text = st.text_area(
+                        "النص",
+                        value=sub['text'],
+                        key=f"text_{original_idx}",
+                        height=100
+                    )
+                
+                with col2:
+                    new_start = st.number_input(
+                        "البداية (ثانية)",
+                        value=float(sub['start']),
+                        step=0.1,
+                        format="%.2f",
+                        key=f"start_{original_idx}"
+                    )
+                
+                with col3:
+                    new_end = st.number_input(
+                        "النهاية (ثانية)",
+                        value=float(sub['end']),
+                        step=0.1,
+                        format="%.2f",
+                        key=f"end_{original_idx}"
+                    )
+                
+                # Update subtitle if changed
+                if (new_text != sub['text'] or 
+                    new_start != sub['start'] or 
+                    new_end != sub['end']):
+                    
+                    if st.button("💾 حفظ التغييرات", key=f"save_{original_idx}"):
+                        st.session_state.subtitles_data[original_idx]['text'] = new_text
+                        st.session_state.subtitles_data[original_idx]['start'] = new_start
+                        st.session_state.subtitles_data[original_idx]['end'] = new_end
+                        st.success(f"✅ تم حفظ التغييرات للترجمة #{sub['index']}")
+                        changes_made = True
+                        st.rerun()
+        
+        if changes_made:
+            st.info("💡 لا تنسَ تحديث المعاينة لمشاهدة التغييرات!")
+        
+        st.markdown("---")
+        
+        # Bulk operations
+        st.subheader("عمليات جماعية")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🔄 إعادة تعيين جميع التغييرات"):
+                # Re-parse from original file
+                file_format = st.session_state.get('subtitle_format', 'srt')
+                st.session_state.subtitles_data = processors['subtitle'].parse_subtitle_file(
+                    st.session_state.subtitle_file_path,
+                    file_format=file_format
+                )
+                st.success("✅ تم إعادة تحميل الترجمات الأصلية")
+                st.rerun()
+        
+        with col2:
+            # Export edited subtitles
+            if st.button("📥 تصدير الترجمات المعدلة (SRT)"):
+                # Create SRT content from edited subtitles
+                srt_content = ""
+                for idx, sub in enumerate(st.session_state.subtitles_data, 1):
+                    start_h = int(sub['start'] // 3600)
+                    start_m = int((sub['start'] % 3600) // 60)
+                    start_s = int(sub['start'] % 60)
+                    start_ms = int((sub['start'] % 1) * 1000)
+                    
+                    end_h = int(sub['end'] // 3600)
+                    end_m = int((sub['end'] % 3600) // 60)
+                    end_s = int(sub['end'] % 60)
+                    end_ms = int((sub['end'] % 1) * 1000)
+                    
+                    srt_content += f"{idx}\n"
+                    srt_content += f"{start_h:02d}:{start_m:02d}:{start_s:02d},{start_ms:03d} --> "
+                    srt_content += f"{end_h:02d}:{end_m:02d}:{end_s:02d},{end_ms:03d}\n"
+                    srt_content += f"{sub['text']}\n\n"
+                
+                st.download_button(
+                    label="📥 تحميل ملف SRT",
+                    data=srt_content.encode('utf-8'),
+                    file_name="edited_subtitles.srt",
+                    mime="text/plain"
+                )
+    
+    with tab3:
         st.header("معاينة الفيديو")
         
         if st.button("🔄 تحديث المعاينة", type="primary"):
@@ -274,7 +539,7 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
                 if len(st.session_state.subtitles_data) > 5:
                     st.markdown(f"... و {len(st.session_state.subtitles_data) - 5} ترجمة أخرى")
     
-    with tab3:
+    with tab4:
         st.header("تصدير وحفظ الفيديو النهائي")
         
         if not st.session_state.preview_ready:
@@ -282,7 +547,7 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
         else:
             st.subheader("إعدادات التصدير")
             
-            col1, col2 = st.columns(2)
+            col1, col2, col3 = st.columns(3)
             
             with col1:
                 output_quality = st.selectbox(
@@ -290,8 +555,24 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
                     ["عالية جداً (أبطأ)", "عالية", "متوسطة", "سريعة"],
                     index=1
                 )
-                
+            
             with col2:
+                # Get original video resolution
+                video_info = processors['video'].get_video_info(st.session_state.video_file_path)
+                original_height = video_info['height']
+                
+                # Resolution options
+                resolution_options = ["الدقة الأصلية", "4K (2160p)", "1080p", "720p", "480p"]
+                resolution_index = 0
+                
+                output_resolution = st.selectbox(
+                    "دقة الفيديو",
+                    resolution_options,
+                    index=resolution_index,
+                    help="اختر دقة الفيديو النهائي"
+                )
+                
+            with col3:
                 output_filename = st.text_input(
                     "اسم الملف النهائي",
                     value="video_with_subtitles",
@@ -309,7 +590,17 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
                             "سريعة": {"preset": "veryfast", "crf": 32}
                         }
                         
+                        # Resolution mapping
+                        resolution_mapping = {
+                            "الدقة الأصلية": None,
+                            "4K (2160p)": 2160,
+                            "1080p": 1080,
+                            "720p": 720,
+                            "480p": 480
+                        }
+                        
                         settings = quality_settings[output_quality]
+                        target_height = resolution_mapping[output_resolution]
                         
                         final_video_path = processors['video'].export_final_video(
                             video_path=st.session_state.video_file_path,
@@ -319,7 +610,8 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
                             arabic_processor=processors['arabic_text'],
                             subtitle_renderer=processors['subtitle'],
                             output_filename=output_filename,
-                            quality_settings=settings
+                            quality_settings=settings,
+                            target_resolution=target_height
                         )
                         
                         st.success("✅ تم تصدير الفيديو بنجاح!")

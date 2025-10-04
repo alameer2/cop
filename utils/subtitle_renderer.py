@@ -1,5 +1,7 @@
 from moviepy import TextClip, CompositeVideoClip
 import pysrt
+import pysubs2
+import webvtt
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import tempfile
@@ -55,9 +57,109 @@ class SubtitleRenderer:
                 time_obj.seconds + 
                 time_obj.milliseconds / 1000.0)
     
+    def parse_ass(self, ass_path):
+        """
+        Parse ASS/SSA file and extract subtitle data
+        
+        Args:
+            ass_path (str): Path to ASS/SSA file
+            
+        Returns:
+            list: List of subtitle entries
+        """
+        try:
+            subs = pysubs2.load(ass_path, encoding='utf-8')
+            subtitle_data = []
+            
+            for i, sub in enumerate(subs):
+                subtitle_data.append({
+                    'index': i + 1,
+                    'start': sub.start / 1000.0,  # Convert ms to seconds
+                    'end': sub.end / 1000.0,
+                    'text': sub.text.replace('\\N', ' ')  # Replace ASS newline with space
+                })
+            
+            return subtitle_data
+            
+        except Exception as e:
+            raise Exception(f"Error parsing ASS file: {str(e)}")
+    
+    def parse_vtt(self, vtt_path):
+        """
+        Parse VTT file and extract subtitle data
+        
+        Args:
+            vtt_path (str): Path to VTT file
+            
+        Returns:
+            list: List of subtitle entries
+        """
+        try:
+            subtitle_data = []
+            
+            for i, caption in enumerate(webvtt.read(vtt_path)):
+                # Convert VTT time format to seconds
+                start = self.vtt_time_to_seconds(caption.start)
+                end = self.vtt_time_to_seconds(caption.end)
+                
+                subtitle_data.append({
+                    'index': i + 1,
+                    'start': start,
+                    'end': end,
+                    'text': caption.text.replace('\n', ' ')
+                })
+            
+            return subtitle_data
+            
+        except Exception as e:
+            raise Exception(f"Error parsing VTT file: {str(e)}")
+    
+    def vtt_time_to_seconds(self, time_str):
+        """
+        Convert VTT time string to seconds
+        
+        Args:
+            time_str (str): Time string in format HH:MM:SS.mmm or MM:SS.mmm
+            
+        Returns:
+            float: Time in seconds
+        """
+        parts = time_str.split(':')
+        
+        if len(parts) == 3:
+            hours, minutes, seconds = parts
+            return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
+        elif len(parts) == 2:
+            minutes, seconds = parts
+            return int(minutes) * 60 + float(seconds)
+        else:
+            return float(parts[0])
+    
+    def parse_subtitle_file(self, subtitle_path, file_format='srt'):
+        """
+        Parse subtitle file based on format
+        
+        Args:
+            subtitle_path (str): Path to subtitle file
+            file_format (str): File format ('srt', 'ass', 'vtt')
+            
+        Returns:
+            list: List of subtitle entries
+        """
+        file_format = file_format.lower()
+        
+        if file_format == 'srt':
+            return self.parse_srt(subtitle_path)
+        elif file_format in ['ass', 'ssa']:
+            return self.parse_ass(subtitle_path)
+        elif file_format == 'vtt':
+            return self.parse_vtt(subtitle_path)
+        else:
+            raise Exception(f"Unsupported subtitle format: {file_format}")
+    
     def create_subtitle_clip(self, text, start_time, end_time, settings, arabic_processor):
         """
-        Create a subtitle clip with specified settings
+        Create a subtitle clip with specified settings including shadow effects
         
         Args:
             text (str): Subtitle text
@@ -67,7 +169,7 @@ class SubtitleRenderer:
             arabic_processor: Arabic text processor instance
             
         Returns:
-            TextClip: Subtitle clip
+            TextClip or CompositeVideoClip: Subtitle clip with effects
         """
         try:
             # Process Arabic text
@@ -81,28 +183,62 @@ class SubtitleRenderer:
             stroke_color = settings.get('stroke_color', '#000000')
             bg_opacity = settings.get('bg_opacity', 0.7)
             
-            # Convert hex colors to RGB
-            text_color_rgb = self.hex_to_rgb(text_color)
-            stroke_color_rgb = self.hex_to_rgb(stroke_color)
+            # Shadow settings
+            shadow_enabled = settings.get('shadow_enabled', False)
+            shadow_offset_x = settings.get('shadow_offset_x', 2)
+            shadow_offset_y = settings.get('shadow_offset_y', 2)
+            shadow_blur = settings.get('shadow_blur', 3)
             
-            # Create text clip
+            duration = end_time - start_time
+            
+            # Create main text clip
             txt_clip = TextClip(
                 processed_text,
                 fontsize=font_size,
                 color=text_color,
-                font='Arial',  # Use Arial as fallback for Arabic
+                font='Arial',
                 stroke_color=stroke_color,
                 stroke_width=stroke_width,
                 method='caption'
-            ).set_start(start_time).set_duration(end_time - start_time)
+            ).set_start(start_time).set_duration(duration)
+            
+            clips_to_composite = []
+            
+            # Add shadow if enabled
+            if shadow_enabled and (shadow_offset_x != 0 or shadow_offset_y != 0):
+                # Create shadow clip (darker version of text)
+                shadow_clip = TextClip(
+                    processed_text,
+                    fontsize=font_size,
+                    color='#000000',  # Black shadow
+                    font='Arial',
+                    stroke_color='#000000',
+                    stroke_width=max(1, stroke_width - 1),
+                    method='caption'
+                ).set_start(start_time).set_duration(duration)
+                
+                # Apply blur effect by reducing opacity
+                if shadow_blur > 0:
+                    shadow_opacity = max(0.3, 1.0 - (shadow_blur / 20.0))
+                    shadow_clip = shadow_clip.set_opacity(shadow_opacity)
+                
+                clips_to_composite.append(shadow_clip)
             
             # Add background if opacity > 0
             if bg_opacity > 0:
-                # Create background clip
                 bg_clip = self.create_background_clip(
-                    txt_clip, bg_color, bg_opacity, start_time, end_time - start_time
+                    txt_clip, bg_color, bg_opacity, start_time, duration
                 )
-                return CompositeVideoClip([bg_clip, txt_clip])
+                if bg_clip:
+                    clips_to_composite.append(bg_clip)
+            
+            # Add main text on top
+            clips_to_composite.append(txt_clip)
+            
+            # Store shadow info for positioning in apply_subtitles
+            txt_clip.shadow_offset = (shadow_offset_x, shadow_offset_y) if shadow_enabled else (0, 0)
+            txt_clip.has_shadow = shadow_enabled
+            txt_clip.shadow_clip = clips_to_composite[0] if (shadow_enabled and len(clips_to_composite) > 1 and clips_to_composite[0] != txt_clip) else None
             
             return txt_clip
             
@@ -217,6 +353,29 @@ class SubtitleRenderer:
                 # Set position based on settings
                 position = self.get_subtitle_position(settings, video_clip)
                 sub_clip = sub_clip.set_position(position)
+                
+                # Add shadow clip if present
+                if hasattr(sub_clip, 'has_shadow') and sub_clip.has_shadow and hasattr(sub_clip, 'shadow_clip'):
+                    shadow_clip = sub_clip.shadow_clip
+                    if shadow_clip:
+                        # Position shadow with offset
+                        shadow_offset = getattr(sub_clip, 'shadow_offset', (2, 2))
+                        
+                        # Calculate shadow position based on main clip position
+                        if isinstance(position, tuple):
+                            if isinstance(position[0], str) and position[0] == 'center':
+                                shadow_pos = ('center', position[1] + shadow_offset[1] if isinstance(position[1], int) else position[1])
+                            elif isinstance(position[1], str) and position[1] == 'center':
+                                shadow_pos = (position[0] + shadow_offset[0] if isinstance(position[0], int) else position[0], 'center')
+                            elif isinstance(position[0], int) and isinstance(position[1], int):
+                                shadow_pos = (position[0] + shadow_offset[0], position[1] + shadow_offset[1])
+                            else:
+                                shadow_pos = position
+                        else:
+                            shadow_pos = position
+                        
+                        shadow_clip = shadow_clip.set_position(shadow_pos)
+                        subtitle_clips.append(shadow_clip)
                 
                 subtitle_clips.append(sub_clip)
             

@@ -115,7 +115,7 @@ class VideoProcessor:
             raise Exception(f"Error creating preview: {str(e)}")
     
     def export_final_video(self, video_path, subtitles_data, audio_path, settings, 
-                          arabic_processor, subtitle_renderer, output_filename, quality_settings):
+                          arabic_processor, subtitle_renderer, output_filename, quality_settings, target_resolution=None):
         """
         Export final video with subtitles and audio
         
@@ -128,6 +128,7 @@ class VideoProcessor:
             subtitle_renderer: Subtitle renderer instance
             output_filename (str): Output filename without extension
             quality_settings (dict): Quality settings for encoding
+            target_resolution (int, optional): Target video height (e.g., 1080, 720)
             
         Returns:
             str: Path to final video
@@ -135,6 +136,15 @@ class VideoProcessor:
         try:
             # Load video clip
             video_clip = VideoFileClip(video_path)
+            
+            # Resize video if target resolution is specified
+            if target_resolution and target_resolution != video_clip.h:
+                aspect_ratio = video_clip.w / video_clip.h
+                new_width = int(target_resolution * aspect_ratio)
+                # Ensure even dimensions for codec compatibility
+                new_width = new_width if new_width % 2 == 0 else new_width + 1
+                new_height = target_resolution if target_resolution % 2 == 0 else target_resolution + 1
+                video_clip = video_clip.resized(height=new_height)
             
             # Apply subtitle rendering
             video_with_subs = subtitle_renderer.apply_subtitles(

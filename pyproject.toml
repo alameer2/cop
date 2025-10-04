@@ -10,6 +10,8 @@ dependencies = [
     "numpy>=2.3.3",
     "pillow>=11.3.0",
     "pysrt>=1.1.2",
+    "pysubs2>=1.8.0",
     "python-bidi>=0.6.6",
     "streamlit>=1.50.0",
+    "webvtt-py>=0.5.1",
 ]
