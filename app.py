@@ -179,7 +179,6 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
             font_family = st.selectbox(
                 "نوع الخط",
                 font_options,
-                index=font_options.index(st.session_state.setting_font_family) if st.session_state.setting_font_family in font_options else 1,
                 key='setting_font_family'
             )
             
@@ -232,7 +231,6 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
             position = st.selectbox(
                 "موقع الترجمة",
                 position_options,
-                index=position_options.index(st.session_state.setting_position) if st.session_state.setting_position in position_options else 0,
                 key='setting_position'
             )
             
@@ -241,7 +239,6 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
             alignment = st.selectbox(
                 "محاذاة النص",
                 alignment_options,
-                index=alignment_options.index(st.session_state.setting_alignment) if st.session_state.setting_alignment in alignment_options else 0,
                 key='setting_alignment'
             )
             

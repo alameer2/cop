@@ -204,10 +204,11 @@ class SubtitleRenderer:
             
             clips_to_composite = []
             
-            # Add shadow if enabled
+            # Add shadow if enabled - store explicit reference
+            shadow_clip_ref = None
             if shadow_enabled and (shadow_offset_x != 0 or shadow_offset_y != 0):
                 # Create shadow clip (darker version of text)
-                shadow_clip = TextClip(
+                shadow_clip_ref = TextClip(
                     processed_text,
                     fontsize=font_size,
                     color='#000000',  # Black shadow
@@ -220,9 +221,9 @@ class SubtitleRenderer:
                 # Apply blur effect by reducing opacity
                 if shadow_blur > 0:
                     shadow_opacity = max(0.3, 1.0 - (shadow_blur / 20.0))
-                    shadow_clip = shadow_clip.set_opacity(shadow_opacity)
+                    shadow_clip_ref = shadow_clip_ref.set_opacity(shadow_opacity)
                 
-                clips_to_composite.append(shadow_clip)
+                clips_to_composite.append(shadow_clip_ref)
             
             # Add background if opacity > 0
             if bg_opacity > 0:
@@ -235,10 +236,10 @@ class SubtitleRenderer:
             # Add main text on top
             clips_to_composite.append(txt_clip)
             
-            # Store shadow info for positioning in apply_subtitles
+            # Store shadow info for positioning in apply_subtitles - use explicit reference
             txt_clip.shadow_offset = (shadow_offset_x, shadow_offset_y) if shadow_enabled else (0, 0)
             txt_clip.has_shadow = shadow_enabled
-            txt_clip.shadow_clip = clips_to_composite[0] if (shadow_enabled and len(clips_to_composite) > 1 and clips_to_composite[0] != txt_clip) else None
+            txt_clip.shadow_clip = shadow_clip_ref  # Direct reference, not list element
             
             return txt_clip
             
