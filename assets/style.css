@@ -1,0 +1,270 @@
+/* Arabic RTL Support and Custom Styling */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap');
+
+/* Set RTL direction for Arabic content */
+.rtl-text {
+    direction: rtl;
+    text-align: right;
+    font-family: 'Noto Sans Arabic', 'Cairo', Arial, sans-serif;
+}
+
+/* Main container styling */
+.main .block-container {
+    max-width: 1200px;
+    padding: 2rem 1rem;
+}
+
+/* Header styling */
+.main h1 {
+    color: #1f77b4;
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f0f2f6 0%, #ffffff 100%);
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Sidebar styling */
+.sidebar .sidebar-content {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+/* File uploader styling */
+.stFileUploader > div > div > div > div {
+    border-radius: 8px;
+    border: 2px dashed #1f77b4;
+    background: #f8f9fa;
+}
+
+/* Button styling */
+.stButton > button {
+    background: linear-gradient(135deg, #1f77b4 0%, #4fa8d8 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+    background: linear-gradient(135deg, #1a6fa0 0%, #3d8bc4 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(31, 119, 180, 0.3);
+}
+
+/* Tabs styling */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+    background: #f0f2f6;
+    border-radius: 10px;
+    padding: 0.5rem;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background: transparent;
+    border-radius: 6px;
+    color: #333;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border: none;
+}
+
+.stTabs [data-baseweb="tab"][aria-selected="true"] {
+    background: #1f77b4;
+    color: white;
+    box-shadow: 0 2px 4px rgba(31, 119, 180, 0.3);
+}
+
+/* Metrics styling */
+.stMetric {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #1f77b4;
+}
+
+/* Expander styling */
+.streamlit-expanderHeader {
+    background: #f0f2f6;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+}
+
+/* Success/Error message styling */
+.stSuccess {
+    border-radius: 8px;
+    border-left: 4px solid #28a745;
+}
+
+.stError {
+    border-radius: 8px;
+    border-left: 4px solid #dc3545;
+}
+
+.stWarning {
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+.stInfo {
+    border-radius: 8px;
+    border-left: 4px solid #17a2b8;
+}
+
+/* Slider styling */
+.stSlider > div > div > div {
+    background: #1f77b4;
+}
+
+/* Color picker styling */
+.stColorPicker > div > div {
+    border-radius: 6px;
+    border: 2px solid #ddd;
+}
+
+/* Select box styling */
+.stSelectbox > div > div {
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    background: white;
+}
+
+/* Number input styling */
+.stNumberInput > div > div > input {
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+}
+
+/* Text input styling */
+.stTextInput > div > div > input {
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+}
+
+/* Video container styling */
+.stVideo {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin: 1rem 0;
+}
+
+/* Loading spinner styling */
+.stSpinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+/* Progress bar styling */
+.stProgress .st-bo {
+    background: #1f77b4;
+}
+
+/* Download button styling */
+[data-testid="stDownloadButton"] button {
+    background: linear-gradient(135deg, #28a745 0%, #34ce57 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    transition: all 0.3s ease;
+}
+
+[data-testid="stDownloadButton"] button:hover {
+    background: linear-gradient(135deg, #218838 0%, #28a745 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* Card-like containers */
+.element-container > div {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .main .block-container {
+        padding: 1rem 0.5rem;
+    }
+    
+    .stButton > button {
+        width: 100%;
+        padding: 0.75rem;
+    }
+}
+
+/* Animation for loading states */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.loading {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #1f77b4;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #1a6fa0;
+}
+
+/* Hide Streamlit menu and footer */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+/* Custom Arabic text styling */
+.arabic-text {
+    font-family: 'Noto Sans Arabic', 'Cairo', Arial, sans-serif;
+    direction: rtl;
+    text-align: right;
+    line-height: 1.6;
+}
+
+/* Subtitle preview styling */
+.subtitle-preview {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-family: 'Noto Sans Arabic', Arial, sans-serif;
+    direction: rtl;
+    text-align: right;
+    margin: 0.5rem 0;
+    border: 2px solid transparent;
+}
+
+.subtitle-preview.active {
+    border-color: #1f77b4;
+    background: rgba(31, 119, 180, 0.8);
+}
