@@ -335,6 +335,8 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
             st.session_state.setting_shadow_offset_y = 2
         if 'setting_shadow_blur' not in st.session_state:
             st.session_state.setting_shadow_blur = 3
+        if 'setting_text_wrap_width' not in st.session_state:
+            st.session_state.setting_text_wrap_width = 50
         
         col1, col2 = st.columns(2)
         
@@ -349,7 +351,14 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
                 key='setting_font_family'
             )
             
-            font_size = st.slider("حجم الخط", 16, 72, key='setting_font_size')
+            font_size = st.slider("حجم الخط", 16, 72, key='setting_font_size', help="اضبط حجم النص - قيم أكبر للنص الأوضح")
+            
+            text_wrap_width = st.slider(
+                "عرض النص (حروف في السطر)", 
+                20, 80, 
+                key='setting_text_wrap_width',
+                help="قلل القيمة لنص أقصر وأكثر وضوحاً، أو زدها لنص أطول"
+            )
             
             # Colors
             text_color = st.color_picker("لون النص", key='setting_text_color')
@@ -462,7 +471,8 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
             'shadow_enabled': enable_shadow,
             'shadow_offset_x': shadow_offset_x,
             'shadow_offset_y': shadow_offset_y,
-            'shadow_blur': shadow_blur
+            'shadow_blur': shadow_blur,
+            'text_wrap_width': text_wrap_width
         }
         
         # Settings save/load section
