@@ -434,19 +434,13 @@ class SubtitleRenderer:
         elif position_setting == 'وسط':
             v_pos = (video_height - text_height) / 2
         else:  # أسفل (default)
-            # Bottom position - account for text height, margin, shadow, and safety buffer
-            v_pos = video_height - text_height - margin_vertical - extra_bottom_padding
-        
-        # Calculate safe bottom limit that honors extra_bottom_padding
-        safe_bottom_limit = video_height - text_height - max(10, extra_bottom_padding)
+            # Bottom position - use the larger of margin_vertical or extra_bottom_padding
+            # This ensures subtitles have enough space for both user preference and shadow/stroke effects
+            bottom_spacing = max(margin_vertical, extra_bottom_padding)
+            v_pos = video_height - text_height - bottom_spacing
         
         # Ensure position doesn't go negative or off screen
-        # For bottom position, use safe_bottom_limit instead of hard-coded value
-        if position_setting == 'أسفل':
-            v_pos = max(5, min(v_pos, safe_bottom_limit))
-        else:
-            v_pos = max(5, min(v_pos, video_height - text_height - 5))
-        
+        v_pos = max(5, min(v_pos, video_height - text_height - 5))
         h_pos = max(5, min(h_pos, video_width - text_width - 5))
         
         return (h_pos, v_pos)
