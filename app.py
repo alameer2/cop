@@ -667,7 +667,7 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
             with open(st.session_state.processed_video_path, 'rb') as video_file:
                 video_bytes = video_file.read()
             
-            st.video(video_bytes, start_time=0)
+            st.video(video_bytes, start_time=0, autoplay=True, loop=False)
             
             # Sample subtitles preview
             if st.session_state.subtitles_data:
