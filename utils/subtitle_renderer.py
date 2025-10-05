@@ -415,10 +415,12 @@ class SubtitleRenderer:
         # Account for shadow offset if enabled
         shadow_enabled = settings.get('shadow_enabled', False)
         shadow_offset_y = settings.get('shadow_offset_y', 0) if shadow_enabled else 0
+        shadow_blur = settings.get('shadow_blur', 0) if shadow_enabled else 0
         stroke_width = settings.get('stroke_width', 0)
         
-        # Calculate extra padding needed for effects (shadow, stroke, etc.)
-        extra_bottom_padding = abs(shadow_offset_y) + stroke_width + 30
+        # Calculate effective height including shadow and effects
+        # Shadow extends below the text by shadow_offset_y, plus blur radius
+        effective_height = text_height + max(0, shadow_offset_y) + shadow_blur + stroke_width
         
         # Horizontal position calculation
         if alignment == 'يسار':
@@ -432,15 +434,14 @@ class SubtitleRenderer:
         if position_setting == 'أعلى':
             v_pos = margin_vertical
         elif position_setting == 'وسط':
-            v_pos = (video_height - text_height) / 2
+            v_pos = (video_height - effective_height) / 2
         else:  # أسفل (default)
-            # Bottom position - use the larger of margin_vertical or extra_bottom_padding
-            # This ensures subtitles have enough space for both user preference and shadow/stroke effects
-            bottom_spacing = max(margin_vertical, extra_bottom_padding)
-            v_pos = video_height - text_height - bottom_spacing
+            # Bottom position - account for effective height including shadow
+            v_pos = video_height - effective_height - margin_vertical
         
         # Ensure position doesn't go negative or off screen
-        v_pos = max(5, min(v_pos, video_height - text_height - 5))
+        # Use effective_height for bottom clamping to protect shadow
+        v_pos = max(5, min(v_pos, video_height - effective_height - 5))
         h_pos = max(5, min(h_pos, video_width - text_width - 5))
         
         return (h_pos, v_pos)
