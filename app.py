@@ -11,6 +11,7 @@ from utils.arabic_text import ArabicTextProcessor
 from utils.video_processor import VideoProcessor
 from utils.subtitle_renderer import SubtitleRenderer
 from utils.audio_handler import AudioHandler
+from utils.file_browser import FileBrowser
 
 # Configure page
 st.set_page_config(
@@ -51,7 +52,8 @@ def get_processors():
         'arabic_text': ArabicTextProcessor(),
         'video': VideoProcessor(),
         'subtitle': SubtitleRenderer(),
-        'audio': AudioHandler()
+        'audio': AudioHandler(),
+        'file_browser': FileBrowser()
     }
 
 processors = get_processors()
@@ -65,38 +67,119 @@ with st.sidebar:
     st.header("📁 تحميل الملفات")
     
     # Video upload
-    st.subheader("1. رفع ملف الفيديو")
-    video_file = st.file_uploader(
-        "اختر ملف الفيديو",
-        type=['mp4', 'avi', 'mov', 'mkv'],
-        help="الصيغ المدعومة: MP4, AVI, MOV, MKV"
+    st.subheader("1. ملف الفيديو")
+    video_source = st.radio(
+        "مصدر الفيديو",
+        ["رفع ملف", "اختيار من المساحة"],
+        key="video_source",
+        horizontal=True
     )
+    
+    video_file = None
+    if video_source == "رفع ملف":
+        video_file = st.file_uploader(
+            "اختر ملف الفيديو",
+            type=['mp4', 'avi', 'mov', 'mkv'],
+            help="الصيغ المدعومة: MP4, AVI, MOV, MKV",
+            key="video_uploader"
+        )
+    else:
+        workspace_videos = processors['file_browser'].get_video_files()
+        if workspace_videos:
+            selected_video = st.selectbox(
+                "اختر ملف الفيديو من المساحة",
+                [""] + workspace_videos,
+                key="workspace_video_select"
+            )
+            if selected_video:
+                video_file_path = processors['file_browser'].get_full_path(selected_video)
+                if os.path.exists(video_file_path):
+                    st.session_state.video_file_path = video_file_path
+                    st.success(f"✅ تم اختيار: {selected_video}")
+        else:
+            st.info("لا توجد ملفات فيديو في المساحة")
     
     # Subtitle upload
-    st.subheader("2. رفع ملف الترجمة")
-    subtitle_file = st.file_uploader(
-        "اختر ملف الترجمة",
-        type=['srt', 'ass', 'ssa', 'vtt'],
-        help="الصيغ المدعومة: SRT, ASS, SSA, VTT (ترميز UTF-8)"
+    st.subheader("2. ملف الترجمة")
+    subtitle_source = st.radio(
+        "مصدر الترجمة",
+        ["رفع ملف", "اختيار من المساحة"],
+        key="subtitle_source",
+        horizontal=True
     )
     
+    subtitle_file = None
+    if subtitle_source == "رفع ملف":
+        subtitle_file = st.file_uploader(
+            "اختر ملف الترجمة",
+            type=['srt', 'ass', 'ssa', 'vtt'],
+            help="الصيغ المدعومة: SRT, ASS, SSA, VTT (ترميز UTF-8)",
+            key="subtitle_uploader"
+        )
+    else:
+        workspace_subtitles = processors['file_browser'].get_subtitle_files()
+        if workspace_subtitles:
+            selected_subtitle = st.selectbox(
+                "اختر ملف الترجمة من المساحة",
+                [""] + workspace_subtitles,
+                key="workspace_subtitle_select"
+            )
+            if selected_subtitle:
+                subtitle_file_path = processors['file_browser'].get_full_path(selected_subtitle)
+                if os.path.exists(subtitle_file_path):
+                    st.session_state.subtitle_file_path = subtitle_file_path
+                    file_ext = selected_subtitle.split('.')[-1].lower()
+                    st.session_state.subtitle_format = file_ext
+                    st.session_state.subtitles_data = processors['subtitle'].parse_subtitle_file(
+                        subtitle_file_path,
+                        file_format=file_ext
+                    )
+                    st.success(f"✅ تم اختيار: {selected_subtitle}")
+        else:
+            st.info("لا توجد ملفات ترجمة في المساحة")
+    
     # Audio upload
-    st.subheader("3. رفع ملف الصوت")
-    audio_file = st.file_uploader(
-        "اختر ملف الصوت",
-        type=['mp3', 'wav', 'aac', 'm4a'],
-        help="الصيغ المدعومة: MP3, WAV, AAC, M4A"
+    st.subheader("3. ملف الصوت")
+    audio_source = st.radio(
+        "مصدر الصوت",
+        ["رفع ملف", "اختيار من المساحة"],
+        key="audio_source",
+        horizontal=True
     )
+    
+    audio_file = None
+    if audio_source == "رفع ملف":
+        audio_file = st.file_uploader(
+            "اختر ملف الصوت",
+            type=['mp3', 'wav', 'aac', 'm4a'],
+            help="الصيغ المدعومة: MP3, WAV, AAC, M4A",
+            key="audio_uploader"
+        )
+    else:
+        workspace_audio = processors['file_browser'].get_audio_files()
+        if workspace_audio:
+            selected_audio = st.selectbox(
+                "اختر ملف الصوت من المساحة",
+                [""] + workspace_audio,
+                key="workspace_audio_select"
+            )
+            if selected_audio:
+                audio_file_path = processors['file_browser'].get_full_path(selected_audio)
+                if os.path.exists(audio_file_path):
+                    st.session_state.audio_file_path = audio_file_path
+                    st.success(f"✅ تم اختيار: {selected_audio}")
+        else:
+            st.info("لا توجد ملفات صوت في المساحة")
 
 # Handle file uploads
 if video_file:
     with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{video_file.name.split(".")[-1]}') as tmp_video:
         tmp_video.write(video_file.read())
         st.session_state.video_file_path = tmp_video.name
-        
-    # Display video info
+
+# Display video info if video is selected (from upload or workspace)
+if st.session_state.video_file_path and os.path.exists(st.session_state.video_file_path):
     video_info = processors['video'].get_video_info(st.session_state.video_file_path)
-    st.success(f"✅ تم تحميل الفيديو بنجاح")
     with st.expander("معلومات الفيديو"):
         col1, col2 = st.columns(2)
         with col1:
@@ -127,10 +210,10 @@ if audio_file:
     with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{audio_file.name.split(".")[-1]}') as tmp_audio:
         tmp_audio.write(audio_file.read())
         st.session_state.audio_file_path = tmp_audio.name
-    
-    # Display audio info
+
+# Display audio info if audio is selected (from upload or workspace)
+if st.session_state.audio_file_path and os.path.exists(st.session_state.audio_file_path):
     audio_info = processors['audio'].get_audio_info(st.session_state.audio_file_path)
-    st.success(f"✅ تم تحميل ملف الصوت")
     with st.expander("معلومات الصوت"):
         st.write(f"**المدة:** {audio_info['duration']:.2f} ثانية")
         st.write(f"**معدل العينات:** {audio_info['sample_rate']} Hz")
