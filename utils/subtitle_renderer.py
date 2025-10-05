@@ -437,8 +437,16 @@ class SubtitleRenderer:
             # Bottom position - account for text height, margin, shadow, and safety buffer
             v_pos = video_height - text_height - margin_vertical - extra_bottom_padding
         
+        # Calculate safe bottom limit that honors extra_bottom_padding
+        safe_bottom_limit = video_height - text_height - max(10, extra_bottom_padding)
+        
         # Ensure position doesn't go negative or off screen
-        v_pos = max(5, min(v_pos, video_height - text_height - 5))
+        # For bottom position, use safe_bottom_limit instead of hard-coded value
+        if position_setting == 'أسفل':
+            v_pos = max(5, min(v_pos, safe_bottom_limit))
+        else:
+            v_pos = max(5, min(v_pos, video_height - text_height - 5))
+        
         h_pos = max(5, min(h_pos, video_width - text_width - 5))
         
         return (h_pos, v_pos)
