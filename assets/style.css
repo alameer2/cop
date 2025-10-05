@@ -152,7 +152,6 @@
 /* Video container styling */
 .stVideo {
     border-radius: 10px;
-    overflow: hidden;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     margin: 1rem 0;
     width: 100%;
@@ -160,10 +159,10 @@
 }
 
 .stVideo video {
-    width: 100%;
-    height: auto;
-    max-width: 100%;
-    object-fit: contain;
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
 }
 
 /* Loading spinner styling */
