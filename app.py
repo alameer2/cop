@@ -663,14 +663,18 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
         if st.session_state.preview_ready and st.session_state.processed_video_path:
             st.subheader("المعاينة المباشرة")
             
-            # Display the processed video
-            with open(st.session_state.processed_video_path, 'rb') as video_file:
-                video_bytes = video_file.read()
+            # Create a full-width container for the video
+            video_container = st.container()
+            with video_container:
+                # Display the processed video
+                with open(st.session_state.processed_video_path, 'rb') as video_file:
+                    video_bytes = video_file.read()
+                
+                st.video(video_bytes, start_time=0, autoplay=True, loop=False)
             
-            st.video(video_bytes, start_time=0, autoplay=True, loop=False)
-            
-            # Sample subtitles preview
+            # Sample subtitles preview in a separate section
             if st.session_state.subtitles_data:
+                st.markdown("---")
                 st.subheader("عينة من الترجمات")
                 for i, sub in enumerate(st.session_state.subtitles_data[:5]):  # Show first 5
                     processed_text = processors['arabic_text'].process_text(sub['text'])

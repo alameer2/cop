@@ -11,7 +11,7 @@
 
 /* Main container styling */
 .main .block-container {
-    max-width: 1200px;
+    max-width: 100%;
     padding: 2rem 1rem;
 }
 
