@@ -115,11 +115,12 @@ Preferred communication style: Simple, everyday language.
 
 ### Subtitle Bottom Clipping Fix (October 5, 2025)
 **Problem**: Subtitles were being cropped from the bottom even with proper margins, making text unclear and cutting off character descenders
-**Root Cause**: The position calculation computed `extra_bottom_padding` for safety, but the final clamping logic ignored this padding and used a hard-coded 5px limit, allowing subtitles to slide too close to the bottom edge
+**Root Cause**: The position calculation was subtracting `extra_bottom_padding` twice - once when calculating `v_pos` and once in `safe_bottom_limit`. This double subtraction prevented the safety limit from working correctly, allowing subtitles to be positioned too close to the bottom edge where shadows and stroke effects would be clipped.
 **Solution**: 
-- Introduced `safe_bottom_limit` that properly incorporates `extra_bottom_padding` (minimum 10px)
-- Modified bottom position clamping to use this safe limit instead of hard-coded value
-- Now prevents subtitle cropping even with negative margins or large shadow effects
+- Changed calculation to use `bottom_spacing = max(margin_vertical, extra_bottom_padding)` instead of adding them
+- This ensures subtitles always have enough space for whichever is larger: user-defined margin or the space needed for visual effects (shadow, stroke)
+- Simplified position calculation: `v_pos = video_height - text_height - bottom_spacing`
+- Now prevents subtitle cropping in all scenarios, including large shadows, wide strokes, or small margins
 - Top and center positions maintain original behavior for consistency
 
 ### Subtitle Positioning Fix
