@@ -9,7 +9,8 @@ class YouTubeDownloader:
     """
     
     def __init__(self):
-        self.output_dir = tempfile.mkdtemp()
+        self.output_dir = os.path.join(os.getcwd(), 'youtube_downloads')
+        os.makedirs(self.output_dir, exist_ok=True)
     
     def get_video_info(self, url):
         """
@@ -223,11 +224,3 @@ class YouTubeDownloader:
             
         except Exception as e:
             raise Exception(f"خطأ في تحويل VTT إلى SRT: {str(e)}")
-    
-    def cleanup(self):
-        """
-        Clean up temporary download directory
-        """
-        import shutil
-        if os.path.exists(self.output_dir):
-            shutil.rmtree(self.output_dir)
