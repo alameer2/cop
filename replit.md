@@ -110,3 +110,43 @@ Preferred communication style: Simple, everyday language.
 **Current State**: No external API integrations
 - Self-contained application processing files locally
 - **Potential Extensions**: Could integrate cloud storage APIs (S3, Google Cloud Storage) for large file handling or transcription services for automated subtitle generation
+
+## Recent Updates (October 2025)
+
+### Subtitle Positioning Fix
+**Problem**: Subtitle text was being cropped from the bottom during preview and rendering
+**Solution**: 
+- Modified `get_subtitle_position()` function to calculate positions based on actual text clip dimensions
+- Now subtracts text height from video height when positioning at bottom to prevent cropping
+- Improved position calculation for all positions (top, center, bottom)
+
+### Professional Subtitle Rendering
+**Enhancement**: Added professional movie-style subtitle rendering capabilities
+**Features**:
+- Increased default font size to 42px for better readability
+- Enhanced stroke width to 3px for better text visibility
+- Professional shadow effects (offset: 3x3, blur: 5) enabled by default
+- Removed background opacity for cleaner look (like professional movies)
+- Added "Professional Settings" quick-apply button for instant optimization
+- Increased default margins (vertical: 60px, horizontal: 50px) to prevent edge cropping
+
+### Text Clarity Controls
+**New Options**:
+- **Text Wrap Width**: Slider to control characters per line (20-80 range)
+  - Lower values: Shorter lines, more readable
+  - Higher values: Longer lines, less line breaks
+  - Default: 45 characters for optimal Arabic text display
+- Dynamic text wrapping integrated with Arabic text processor
+
+### Default Settings Optimization
+**Professional Defaults**:
+- Font size: 42px (up from 28px)
+- Stroke width: 3px (up from 2px)
+- Shadow offset: 3x3 (up from 2x2)
+- Shadow blur: 5 (up from 3)
+- Vertical margin: 60px (up from 30px)
+- Horizontal margin: 50px (up from 20px)
+- Background opacity: 0.0 (transparent, down from 0.7)
+- Text alignment: Center (default)
+
+These settings produce subtitle quality comparable to professional movie releases.

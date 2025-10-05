@@ -312,31 +312,31 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
     with tab1:
         st.header("إعدادات التحكم في الترجمة والصوت")
         
-        # Initialize settings keys if not present
+        # Initialize settings keys with professional defaults (like movie subtitles)
         if 'setting_font_family' not in st.session_state:
             st.session_state.setting_font_family = "Noto Sans Arabic"
         if 'setting_font_size' not in st.session_state:
-            st.session_state.setting_font_size = 28
+            st.session_state.setting_font_size = 42
         if 'setting_text_color' not in st.session_state:
             st.session_state.setting_text_color = "#FFFFFF"
         if 'setting_bg_color' not in st.session_state:
             st.session_state.setting_bg_color = "#000000"
         if 'setting_stroke_width' not in st.session_state:
-            st.session_state.setting_stroke_width = 2
+            st.session_state.setting_stroke_width = 3
         if 'setting_stroke_color' not in st.session_state:
             st.session_state.setting_stroke_color = "#000000"
         if 'setting_bg_opacity' not in st.session_state:
-            st.session_state.setting_bg_opacity = 0.7
+            st.session_state.setting_bg_opacity = 0.0
         if 'setting_shadow_enabled' not in st.session_state:
             st.session_state.setting_shadow_enabled = True
         if 'setting_shadow_offset_x' not in st.session_state:
-            st.session_state.setting_shadow_offset_x = 2
+            st.session_state.setting_shadow_offset_x = 3
         if 'setting_shadow_offset_y' not in st.session_state:
-            st.session_state.setting_shadow_offset_y = 2
+            st.session_state.setting_shadow_offset_y = 3
         if 'setting_shadow_blur' not in st.session_state:
-            st.session_state.setting_shadow_blur = 3
+            st.session_state.setting_shadow_blur = 5
         if 'setting_text_wrap_width' not in st.session_state:
-            st.session_state.setting_text_wrap_width = 50
+            st.session_state.setting_text_wrap_width = 45
         
         col1, col2 = st.columns(2)
         
@@ -383,15 +383,31 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
                 shadow_offset_y = 0
                 shadow_blur = 0
             
-        # Initialize position settings
+            st.markdown("---")
+            if st.button("⚡ تطبيق إعدادات احترافية", help="تطبيق إعدادات مثل ترجمة الأفلام الاحترافية"):
+                st.session_state.setting_font_size = 42
+                st.session_state.setting_stroke_width = 3
+                st.session_state.setting_bg_opacity = 0.0
+                st.session_state.setting_shadow_enabled = True
+                st.session_state.setting_shadow_offset_x = 3
+                st.session_state.setting_shadow_offset_y = 3
+                st.session_state.setting_shadow_blur = 5
+                st.session_state.setting_text_wrap_width = 45
+                st.session_state.setting_margin_vertical = 60
+                st.session_state.setting_margin_horizontal = 50
+                st.session_state.setting_alignment = "وسط"
+                st.success("✅ تم تطبيق الإعدادات الاحترافية! قم بمعاينة النتيجة")
+                st.rerun()
+            
+        # Initialize position settings with professional defaults
         if 'setting_position' not in st.session_state:
             st.session_state.setting_position = "أسفل"
         if 'setting_alignment' not in st.session_state:
-            st.session_state.setting_alignment = "يمين"
+            st.session_state.setting_alignment = "وسط"
         if 'setting_margin_horizontal' not in st.session_state:
-            st.session_state.setting_margin_horizontal = 20
+            st.session_state.setting_margin_horizontal = 50
         if 'setting_margin_vertical' not in st.session_state:
-            st.session_state.setting_margin_vertical = 30
+            st.session_state.setting_margin_vertical = 60
         if 'setting_subtitle_offset' not in st.session_state:
             st.session_state.setting_subtitle_offset = 0.0
         if 'setting_audio_offset' not in st.session_state:

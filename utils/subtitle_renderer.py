@@ -354,8 +354,8 @@ class SubtitleRenderer:
                     sub['text'], start_time, end_time, settings, arabic_processor
                 )
                 
-                # Set position based on settings
-                position = self.get_subtitle_position(settings, video_clip)
+                # Set position based on settings and text dimensions
+                position = self.get_subtitle_position(settings, video_clip, sub_clip)
                 sub_clip = sub_clip.with_position(position)
                 
                 # Add shadow clip if present
@@ -365,25 +365,11 @@ class SubtitleRenderer:
                         # Position shadow with offset
                         shadow_offset = getattr(sub_clip, 'shadow_offset', (2, 2))
                         
-                        # Create shadow position function with offset
-                        if callable(position):
-                            shadow_pos = lambda t: (
-                                position(t)[0] + shadow_offset[0],
-                                position(t)[1] + shadow_offset[1]
-                            )
-                        else:
-                            # Fallback for tuple positions
-                            if isinstance(position, tuple):
-                                if isinstance(position[0], str) and position[0] == 'center':
-                                    shadow_pos = ('center', position[1] + shadow_offset[1] if isinstance(position[1], int) else position[1])
-                                elif isinstance(position[1], str) and position[1] == 'center':
-                                    shadow_pos = (position[0] + shadow_offset[0] if isinstance(position[0], int) else position[0], 'center')
-                                elif isinstance(position[0], int) and isinstance(position[1], int):
-                                    shadow_pos = (position[0] + shadow_offset[0], position[1] + shadow_offset[1])
-                                else:
-                                    shadow_pos = position
-                            else:
-                                shadow_pos = position
+                        # Calculate shadow position with offset
+                        shadow_pos = (
+                            position[0] + shadow_offset[0],
+                            position[1] + shadow_offset[1]
+                        )
                         
                         shadow_clip = shadow_clip.with_position(shadow_pos)
                         subtitle_clips.append(shadow_clip)
@@ -401,51 +387,48 @@ class SubtitleRenderer:
         except Exception as e:
             raise Exception(f"Error applying subtitles: {str(e)}")
     
-    def get_subtitle_position(self, settings, video_clip):
+    def get_subtitle_position(self, settings, video_clip, text_clip):
         """
         Calculate subtitle position based on settings with proper handling for text height
         
         Args:
             settings (dict): Subtitle settings
             video_clip: Video clip for size reference
+            text_clip: Text clip to get dimensions from
             
         Returns:
-            tuple or lambda: Position tuple/function for MoviePy
+            tuple: Position tuple (x, y) for MoviePy
         """
         position_setting = settings.get('position', 'أسفل')
         alignment = settings.get('alignment', 'وسط')
         margin_horizontal = settings.get('margin_horizontal', 20)
-        margin_vertical = settings.get('margin_vertical', 30)
+        margin_vertical = settings.get('margin_vertical', 50)
         
         video_width = video_clip.w
         video_height = video_clip.h
         
+        # Get text dimensions
+        text_width = text_clip.w
+        text_height = text_clip.h
+        
         # Horizontal position calculation
         if alignment == 'يسار':
             h_pos = margin_horizontal
-        elif alignment == 'يمين':
-            h_pos_calc = lambda w: video_width - w - margin_horizontal
-        else:  # وسط (default)
-            h_pos_calc = lambda w: (video_width - w) / 2
-        
-        # For simple cases, use direct values
-        if alignment == 'يسار':
-            h_pos_calc = lambda w: margin_horizontal
         elif alignment == 'وسط':
-            h_pos_calc = lambda w: (video_width - w) / 2
+            h_pos = (video_width - text_width) / 2
         else:  # يمين
-            h_pos_calc = lambda w: video_width - w - margin_horizontal
+            h_pos = video_width - text_width - margin_horizontal
         
         # Vertical position calculation with proper text height handling
         if position_setting == 'أعلى':
-            # Top position - simple case
-            return lambda t: (h_pos_calc(t.w), margin_vertical)
+            v_pos = margin_vertical
         elif position_setting == 'وسط':
-            # Center position - account for text height
-            return lambda t: (h_pos_calc(t.w), (video_height - t.h) / 2)
+            v_pos = (video_height - text_height) / 2
         else:  # أسفل (default)
-            # Bottom position - subtract text height from video height to prevent cropping
-            return lambda t: (h_pos_calc(t.w), video_height - t.h - margin_vertical)
+            # Bottom position - subtract text height and margin to prevent cropping
+            v_pos = video_height - text_height - margin_vertical
+        
+        return (h_pos, v_pos)
     
     def validate_srt_file(self, srt_path):
         """
