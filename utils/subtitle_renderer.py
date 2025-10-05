@@ -426,8 +426,13 @@ class SubtitleRenderer:
         elif position_setting == 'وسط':
             v_pos = (video_height - text_height) / 2
         else:  # أسفل (default)
-            # Bottom position - subtract text height and margin to prevent cropping
-            v_pos = video_height - text_height - margin_vertical
+            # Bottom position - ensure text is fully visible by adding extra padding
+            # Subtract text height, margin, and extra 20px buffer to prevent any cropping
+            v_pos = max(0, video_height - text_height - margin_vertical - 20)
+        
+        # Ensure position doesn't go negative or off screen
+        v_pos = max(0, min(v_pos, video_height - text_height))
+        h_pos = max(0, min(h_pos, video_width - text_width))
         
         return (h_pos, v_pos)
     

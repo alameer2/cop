@@ -10,14 +10,14 @@
     "position": "أسفل",
     "alignment": "وسط",
     "margin_horizontal": 50,
-    "margin_vertical": 60,
+    "margin_vertical": 32,
     "subtitle_offset": 0.0,
     "audio_offset": 0.0,
     "audio_volume": 1.0,
     "shadow_enabled": true,
     "shadow_offset_x": 3,
     "shadow_offset_y": 3,
-    "shadow_blur": 5,
-    "text_wrap_width": 45
+    "shadow_blur": 4,
+    "text_wrap_width": 74
   }
 }

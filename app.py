@@ -351,7 +351,7 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
                 key='setting_font_family'
             )
             
-            font_size = st.slider("حجم الخط", 16, 72, key='setting_font_size', help="اضبط حجم النص - قيم أكبر للنص الأوضح")
+            font_size = st.slider("حجم الخط", 12, 72, key='setting_font_size', help="اضبط حجم النص - قيم أكبر للنص الأوضح")
             
             text_wrap_width = st.slider(
                 "عرض النص (حروف في السطر)", 
