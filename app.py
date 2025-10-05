@@ -663,14 +663,23 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
         if st.session_state.preview_ready and st.session_state.processed_video_path:
             st.subheader("المعاينة المباشرة")
             
-            # Create a full-width container for the video
-            video_container = st.container()
-            with video_container:
-                # Display the processed video
-                with open(st.session_state.processed_video_path, 'rb') as video_file:
-                    video_bytes = video_file.read()
-                
-                st.video(video_bytes, start_time=0, autoplay=True, loop=False)
+            # Display the processed video with full width
+            with open(st.session_state.processed_video_path, 'rb') as video_file:
+                video_bytes = video_file.read()
+            
+            # Use HTML video player for better control
+            import base64
+            video_base64 = base64.b64encode(video_bytes).decode()
+            
+            video_html = f"""
+            <div style="width: 100%; max-width: 100%; margin: 0 auto; overflow: visible;">
+                <video controls style="width: 100%; height: auto; max-width: 100%; object-fit: contain; display: block;" autoplay>
+                    <source src="data:video/mp4;base64,{video_base64}" type="video/mp4">
+                    المتصفح لا يدعم تشغيل الفيديو
+                </video>
+            </div>
+            """
+            st.markdown(video_html, unsafe_allow_html=True)
             
             # Sample subtitles preview in a separate section
             if st.session_state.subtitles_data:

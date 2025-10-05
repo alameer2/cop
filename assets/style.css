@@ -163,6 +163,16 @@
     height: auto !important;
     max-width: 100% !important;
     object-fit: contain !important;
+    display: block !important;
+}
+
+/* Custom video styling for embedded HTML video */
+video {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+    display: block !important;
 }
 
 /* Loading spinner styling */
