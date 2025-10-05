@@ -241,7 +241,6 @@
 /* Hide Streamlit menu and footer */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
-header {visibility: hidden;}
 
 /* Custom Arabic text styling */
 .arabic-text {
