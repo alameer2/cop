@@ -412,6 +412,14 @@ class SubtitleRenderer:
         text_width = text_clip.w
         text_height = text_clip.h
         
+        # Account for shadow offset if enabled
+        shadow_enabled = settings.get('shadow_enabled', False)
+        shadow_offset_y = settings.get('shadow_offset_y', 0) if shadow_enabled else 0
+        stroke_width = settings.get('stroke_width', 0)
+        
+        # Calculate extra padding needed for effects (shadow, stroke, etc.)
+        extra_bottom_padding = abs(shadow_offset_y) + stroke_width + 30
+        
         # Horizontal position calculation
         if alignment == 'يسار':
             h_pos = margin_horizontal
@@ -426,13 +434,12 @@ class SubtitleRenderer:
         elif position_setting == 'وسط':
             v_pos = (video_height - text_height) / 2
         else:  # أسفل (default)
-            # Bottom position - ensure text is fully visible by adding extra padding
-            # Subtract text height, margin, and extra 20px buffer to prevent any cropping
-            v_pos = max(0, video_height - text_height - margin_vertical - 20)
+            # Bottom position - account for text height, margin, shadow, and safety buffer
+            v_pos = video_height - text_height - margin_vertical - extra_bottom_padding
         
         # Ensure position doesn't go negative or off screen
-        v_pos = max(0, min(v_pos, video_height - text_height))
-        h_pos = max(0, min(h_pos, video_width - text_width))
+        v_pos = max(5, min(v_pos, video_height - text_height - 5))
+        h_pos = max(5, min(h_pos, video_width - text_width - 5))
         
         return (h_pos, v_pos)
     
