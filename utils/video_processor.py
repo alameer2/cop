@@ -57,7 +57,7 @@ class VideoProcessor:
             
             # Create preview clip (first 30 seconds or less)
             preview_end = min(preview_duration, video_clip.duration)
-            video_preview = video_clip.subclip(0, preview_end)
+            video_preview = video_clip.subclipped(0, preview_end)
             
             # Apply subtitle rendering
             video_with_subs = subtitle_renderer.apply_subtitles(
@@ -84,7 +84,7 @@ class VideoProcessor:
                     audio_clip = audio_clip.volumex(audio_volume)
                 
                 # Trim audio to preview duration
-                audio_clip = audio_clip.subclip(0, preview_end)
+                audio_clip = audio_clip.subclipped(0, preview_end)
                 
                 # Set audio to video
                 video_with_subs = video_with_subs.set_audio(audio_clip)
@@ -171,7 +171,7 @@ class VideoProcessor:
                 
                 # Ensure audio duration matches video
                 if audio_clip.duration > video_with_subs.duration:
-                    audio_clip = audio_clip.subclip(0, video_with_subs.duration)
+                    audio_clip = audio_clip.subclipped(0, video_with_subs.duration)
                 
                 # Set audio to video
                 video_with_subs = video_with_subs.set_audio(audio_clip)
@@ -237,7 +237,7 @@ class VideoProcessor:
         """
         try:
             video_clip = VideoFileClip(video_path)
-            trimmed_clip = video_clip.subclip(start_time, end_time)
+            trimmed_clip = video_clip.subclipped(start_time, end_time)
             video_clip.close()
             return trimmed_clip
         except Exception as e:
