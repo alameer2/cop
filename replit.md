@@ -114,14 +114,16 @@ Preferred communication style: Simple, everyday language.
 ## Recent Updates (October 2025)
 
 ### Subtitle Bottom Clipping Fix (October 5, 2025)
-**Problem**: Subtitles were being cropped from the bottom even with proper margins, making text unclear and cutting off character descenders
-**Root Cause**: The position calculation was subtracting `extra_bottom_padding` twice - once when calculating `v_pos` and once in `safe_bottom_limit`. This double subtraction prevented the safety limit from working correctly, allowing subtitles to be positioned too close to the bottom edge where shadows and stroke effects would be clipped.
+**Problem**: Subtitles were being cropped from the bottom even with proper margins, making text unclear and cutting off character descenders (especially the shadow effects)
+**Root Cause**: The `text_clip.h` property only measures the text glyphs themselves, but does NOT include the shadow which is rendered as a separate clip positioned below the text by `shadow_offset_y`. When calculating position using `text_height`, the text stayed inside the frame but the shadow extended past the bottom edge and was clipped.
 **Solution**: 
-- Changed calculation to use `bottom_spacing = max(margin_vertical, extra_bottom_padding)` instead of adding them
-- This ensures subtitles always have enough space for whichever is larger: user-defined margin or the space needed for visual effects (shadow, stroke)
-- Simplified position calculation: `v_pos = video_height - text_height - bottom_spacing`
-- Now prevents subtitle cropping in all scenarios, including large shadows, wide strokes, or small margins
-- Top and center positions maintain original behavior for consistency
+- Introduced `effective_height` calculation that includes the full rendered height: `effective_height = text_height + max(0, shadow_offset_y) + shadow_blur + stroke_width`
+- Use `effective_height` instead of `text_height` in all position calculations and clamping
+- This ensures the vertical position accounts for the shadow extending below the text
+- Position calculation: `v_pos = video_height - effective_height - margin_vertical`
+- Clamping also uses `effective_height` to protect the shadow from being cut off
+- Now prevents subtitle and shadow cropping in all scenarios
+- Applied to center position as well for consistency
 
 ### Subtitle Positioning Fix
 **Problem**: Subtitle text was being cropped from the bottom during preview and rendering
