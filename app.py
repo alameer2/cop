@@ -384,20 +384,7 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
                 shadow_blur = 0
             
             st.markdown("---")
-            if st.button("⚡ تطبيق إعدادات احترافية", help="تطبيق إعدادات مثل ترجمة الأفلام الاحترافية"):
-                st.session_state.setting_font_size = 42
-                st.session_state.setting_stroke_width = 3
-                st.session_state.setting_bg_opacity = 0.0
-                st.session_state.setting_shadow_enabled = True
-                st.session_state.setting_shadow_offset_x = 3
-                st.session_state.setting_shadow_offset_y = 3
-                st.session_state.setting_shadow_blur = 5
-                st.session_state.setting_text_wrap_width = 45
-                st.session_state.setting_margin_vertical = 60
-                st.session_state.setting_margin_horizontal = 50
-                st.session_state.setting_alignment = "وسط"
-                st.success("✅ تم تطبيق الإعدادات الاحترافية! قم بمعاينة النتيجة")
-                st.rerun()
+            st.info("💡 الإعدادات الافتراضية محسّنة بجودة احترافية")
             
         # Initialize position settings with professional defaults
         if 'setting_position' not in st.session_state:

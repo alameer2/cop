@@ -121,7 +121,7 @@ class ArabicTextProcessor:
             str: Processed text with line breaks
         """
         lines = self.split_long_text(text, max_chars_per_line)
-        processed_lines = [self.process_text(line) for line in lines]
+        processed_lines = [str(self.process_text(line)) for line in lines]
         return "\n".join(processed_lines)
     
     def is_arabic(self, text):

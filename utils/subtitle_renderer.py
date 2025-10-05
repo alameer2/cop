@@ -97,7 +97,8 @@ class SubtitleRenderer:
         try:
             subtitle_data = []
             
-            for i, caption in enumerate(webvtt.read(vtt_path)):
+            vtt_content = webvtt.read(vtt_path)
+            for i, caption in enumerate(vtt_content):
                 # Convert VTT time format to seconds
                 start = self.vtt_time_to_seconds(caption.start)
                 end = self.vtt_time_to_seconds(caption.end)
