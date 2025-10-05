@@ -196,10 +196,9 @@ class SubtitleRenderer:
                 text=processed_text,
                 font_size=font_size,
                 color=text_color,
-                font='Arial',
                 stroke_color=stroke_color,
                 stroke_width=stroke_width
-            ).set_start(start_time).set_duration(duration)
+            ).with_start(start_time).with_duration(duration)
             
             clips_to_composite = []
             
@@ -211,15 +210,14 @@ class SubtitleRenderer:
                     text=processed_text,
                     font_size=font_size,
                     color='#000000',  # Black shadow
-                    font='Arial',
                     stroke_color='#000000',
                     stroke_width=max(1, stroke_width - 1)
-                ).set_start(start_time).set_duration(duration)
+                ).with_start(start_time).with_duration(duration)
                 
                 # Apply blur effect by reducing opacity
                 if shadow_blur > 0:
                     shadow_opacity = max(0.3, 1.0 - (shadow_blur / 20.0))
-                    shadow_clip_ref = shadow_clip_ref.set_opacity(shadow_opacity)
+                    shadow_clip_ref = shadow_clip_ref.with_opacity(shadow_opacity)
                 
                 clips_to_composite.append(shadow_clip_ref)
             
@@ -248,7 +246,7 @@ class SubtitleRenderer:
                 text=text,
                 font_size=settings.get('font_size', 24),
                 color=settings.get('text_color', '#FFFFFF')
-            ).set_start(start_time).set_duration(end_time - start_time)
+            ).with_start(start_time).with_duration(end_time - start_time)
     
     def create_background_clip(self, text_clip, bg_color, opacity, start_time, duration):
         """
@@ -275,7 +273,7 @@ class SubtitleRenderer:
                 size=(w + 20, h + 10),  # Add padding
                 color=self.hex_to_rgb(bg_color),
                 duration=duration
-            ).set_opacity(opacity).set_start(start_time)
+            ).with_opacity(opacity).with_start(start_time)
             
             return bg_clip
             
@@ -351,7 +349,7 @@ class SubtitleRenderer:
                 
                 # Set position based on settings
                 position = self.get_subtitle_position(settings, video_clip)
-                sub_clip = sub_clip.set_position(position)
+                sub_clip = sub_clip.with_position(position)
                 
                 # Add shadow clip if present
                 if hasattr(sub_clip, 'has_shadow') and sub_clip.has_shadow and hasattr(sub_clip, 'shadow_clip'):
@@ -373,7 +371,7 @@ class SubtitleRenderer:
                         else:
                             shadow_pos = position
                         
-                        shadow_clip = shadow_clip.set_position(shadow_pos)
+                        shadow_clip = shadow_clip.with_position(shadow_pos)
                         subtitle_clips.append(shadow_clip)
                 
                 subtitle_clips.append(sub_clip)

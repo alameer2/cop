@@ -76,7 +76,7 @@ class VideoProcessor:
                 # Apply audio offset
                 audio_offset = settings.get('audio_offset', 0)
                 if audio_offset != 0:
-                    audio_clip = audio_clip.set_start(audio_offset)
+                    audio_clip = audio_clip.with_start(audio_offset)
                 
                 # Apply volume
                 audio_volume = settings.get('audio_volume', 1.0)
@@ -87,7 +87,7 @@ class VideoProcessor:
                 audio_clip = audio_clip.subclipped(0, preview_end)
                 
                 # Set audio to video
-                video_with_subs = video_with_subs.set_audio(audio_clip)
+                video_with_subs = video_with_subs.with_audio(audio_clip)
                 audio_clip.close()
             
             # Create temporary file for preview
@@ -162,7 +162,7 @@ class VideoProcessor:
                 # Apply audio offset
                 audio_offset = settings.get('audio_offset', 0)
                 if audio_offset != 0:
-                    audio_clip = audio_clip.set_start(audio_offset)
+                    audio_clip = audio_clip.with_start(audio_offset)
                 
                 # Apply volume
                 audio_volume = settings.get('audio_volume', 1.0)
@@ -174,7 +174,7 @@ class VideoProcessor:
                     audio_clip = audio_clip.subclipped(0, video_with_subs.duration)
                 
                 # Set audio to video
-                video_with_subs = video_with_subs.set_audio(audio_clip)
+                video_with_subs = video_with_subs.with_audio(audio_clip)
                 audio_clip.close()
             
             # Create output path
