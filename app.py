@@ -12,6 +12,7 @@ from utils.video_processor import VideoProcessor
 from utils.subtitle_renderer import SubtitleRenderer
 from utils.audio_handler import AudioHandler
 from utils.file_browser import FileBrowser
+from utils.youtube_downloader import YouTubeDownloader
 
 # Configure page
 st.set_page_config(
@@ -53,7 +54,8 @@ def get_processors():
         'video': VideoProcessor(),
         'subtitle': SubtitleRenderer(),
         'audio': AudioHandler(),
-        'file_browser': FileBrowser()
+        'file_browser': FileBrowser(),
+        'youtube': YouTubeDownloader()
     }
 
 processors = get_processors()
@@ -65,6 +67,88 @@ st.markdown("### أداة احترافية لدمج الترجمة النصية 
 # Sidebar for file uploads and settings
 with st.sidebar:
     st.header("📁 تحميل الملفات")
+    
+    # YouTube download section
+    with st.expander("📺 تحميل من يوتيوب", expanded=False):
+        youtube_url = st.text_input(
+            "رابط الفيديو من يوتيوب",
+            placeholder="https://www.youtube.com/watch?v=...",
+            key="youtube_url"
+        )
+        
+        if youtube_url and st.button("📥 جلب معلومات الفيديو", key="fetch_youtube_info"):
+            try:
+                with st.spinner("جاري جلب معلومات الفيديو..."):
+                    video_info = processors['youtube'].get_video_info(youtube_url)
+                    st.session_state.youtube_info = video_info
+                    st.success(f"✅ {video_info['title']}")
+            except Exception as e:
+                st.error(f"❌ {str(e)}")
+        
+        if 'youtube_info' in st.session_state and st.session_state.youtube_info:
+            info = st.session_state.youtube_info
+            
+            st.write(f"**العنوان:** {info['title']}")
+            st.write(f"**المدة:** {info['duration']//60} دقيقة {info['duration']%60} ثانية")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                if info['formats']:
+                    quality_options = {f"{fmt['quality']}": fmt['format_id'] for fmt in info['formats']}
+                    selected_quality = st.selectbox(
+                        "اختر الجودة",
+                        list(quality_options.keys()),
+                        key="youtube_quality"
+                    )
+                    
+                    if st.button("📥 تحميل الفيديو", key="download_youtube_video"):
+                        try:
+                            with st.spinner("جاري تحميل الفيديو..."):
+                                format_id = quality_options[selected_quality]
+                                video_path = processors['youtube'].download_video(
+                                    youtube_url,
+                                    quality=format_id
+                                )
+                                st.session_state.video_file_path = video_path
+                                st.success("✅ تم تحميل الفيديو بنجاح!")
+                                st.rerun()
+                        except Exception as e:
+                            st.error(f"❌ {str(e)}")
+            
+            with col2:
+                all_subs = info.get('subtitles', []) + info.get('automatic_captions', [])
+                if all_subs:
+                    sub_options = {sub['name']: (sub['lang'], 'subtitles' if sub in info.get('subtitles', []) else 'automatic_captions') for sub in all_subs}
+                    selected_sub = st.selectbox(
+                        "اختر الترجمة",
+                        list(sub_options.keys()),
+                        key="youtube_subtitle"
+                    )
+                    
+                    if st.button("📥 تحميل الترجمة", key="download_youtube_subtitle"):
+                        try:
+                            with st.spinner("جاري تحميل الترجمة..."):
+                                lang, sub_type = sub_options[selected_sub]
+                                subtitle_path = processors['youtube'].download_subtitle(
+                                    youtube_url,
+                                    lang=lang,
+                                    subtitle_type=sub_type
+                                )
+                                st.session_state.subtitle_file_path = subtitle_path
+                                st.session_state.subtitle_format = 'srt'
+                                st.session_state.subtitles_data = processors['subtitle'].parse_subtitle_file(
+                                    subtitle_path,
+                                    file_format='srt'
+                                )
+                                st.success("✅ تم تحميل الترجمة بنجاح!")
+                                st.rerun()
+                        except Exception as e:
+                            st.error(f"❌ {str(e)}")
+                else:
+                    st.info("لا توجد ترجمات متاحة")
+    
+    st.markdown("---")
     
     # Video upload
     st.subheader("1. ملف الفيديو")
