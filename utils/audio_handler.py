@@ -181,11 +181,7 @@ class AudioHandler:
             
             with VideoFileClip(video_path) as video_clip:
                 if video_clip.audio is not None:
-                    video_clip.audio.write_audiofile(
-                        output_path,
-                        verbose=False,
-                        logger=None
-                    )
+                    video_clip.audio.write_audiofile(output_path)
                 else:
                     raise Exception("Video has no audio track")
             

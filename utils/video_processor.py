@@ -99,9 +99,7 @@ class VideoProcessor:
                 fps=video_preview.fps,
                 codec='libx264',
                 audio_codec='aac',
-                preset='fast',
-                verbose=False,
-                logger=None
+                preset='fast'
             )
             
             # Cleanup
@@ -187,11 +185,7 @@ class VideoProcessor:
                 codec='libx264',
                 audio_codec='aac',
                 preset=quality_settings['preset'],
-                ffmpeg_params=['-crf', str(quality_settings['crf'])],
-                verbose=False,
-                logger=None,
-                temp_audiofile='temp-audio.m4a',
-                remove_temp=True
+                ffmpeg_params=['-crf', str(quality_settings['crf'])]
             )
             
             # Cleanup
