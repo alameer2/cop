@@ -504,31 +504,7 @@ if st.session_state.video_file_path and st.session_state.subtitle_file_path:
                 if presets:
                     selected_preset = st.selectbox("اختر إعدادات محفوظة", list(presets.keys()))
                     if st.button("📥 تحميل الإعدادات"):
-                        # Load the selected preset into all session_state keys
-                        preset_data = presets[selected_preset]
-                        
-                        # Update all widget keys
-                        st.session_state.setting_font_family = preset_data.get('font_family', 'Noto Sans Arabic')
-                        st.session_state.setting_font_size = preset_data.get('font_size', 28)
-                        st.session_state.setting_text_color = preset_data.get('text_color', '#FFFFFF')
-                        st.session_state.setting_bg_color = preset_data.get('bg_color', '#000000')
-                        st.session_state.setting_stroke_width = preset_data.get('stroke_width', 2)
-                        st.session_state.setting_stroke_color = preset_data.get('stroke_color', '#000000')
-                        st.session_state.setting_bg_opacity = preset_data.get('bg_opacity', 0.7)
-                        st.session_state.setting_shadow_enabled = preset_data.get('shadow_enabled', True)
-                        st.session_state.setting_shadow_offset_x = preset_data.get('shadow_offset_x', 2)
-                        st.session_state.setting_shadow_offset_y = preset_data.get('shadow_offset_y', 2)
-                        st.session_state.setting_shadow_blur = preset_data.get('shadow_blur', 3)
-                        st.session_state.setting_position = preset_data.get('position', 'أسفل')
-                        st.session_state.setting_alignment = preset_data.get('alignment', 'يمين')
-                        st.session_state.setting_margin_horizontal = preset_data.get('margin_horizontal', 20)
-                        st.session_state.setting_margin_vertical = preset_data.get('margin_vertical', 30)
-                        st.session_state.setting_subtitle_offset = preset_data.get('subtitle_offset', 0.0)
-                        st.session_state.setting_audio_offset = preset_data.get('audio_offset', 0.0)
-                        st.session_state.setting_audio_volume = preset_data.get('audio_volume', 1.0)
-                        
-                        st.success(f"✅ تم تحميل الإعدادات '{selected_preset}'")
-                        st.rerun()
+                        st.info(f"💡 لتحميل الإعدادات '{selected_preset}'، يرجى نسخ القيم يدوياً من الملف subtitle_presets.json")
                 else:
                     st.info("لا توجد إعدادات محفوظة بعد")
             else:

@@ -193,13 +193,12 @@ class SubtitleRenderer:
             
             # Create main text clip
             txt_clip = TextClip(
-                processed_text,
-                fontsize=font_size,
+                text=processed_text,
+                font_size=font_size,
                 color=text_color,
                 font='Arial',
                 stroke_color=stroke_color,
-                stroke_width=stroke_width,
-                method='caption'
+                stroke_width=stroke_width
             ).set_start(start_time).set_duration(duration)
             
             clips_to_composite = []
@@ -209,13 +208,12 @@ class SubtitleRenderer:
             if shadow_enabled and (shadow_offset_x != 0 or shadow_offset_y != 0):
                 # Create shadow clip (darker version of text)
                 shadow_clip_ref = TextClip(
-                    processed_text,
-                    fontsize=font_size,
+                    text=processed_text,
+                    font_size=font_size,
                     color='#000000',  # Black shadow
                     font='Arial',
                     stroke_color='#000000',
-                    stroke_width=max(1, stroke_width - 1),
-                    method='caption'
+                    stroke_width=max(1, stroke_width - 1)
                 ).set_start(start_time).set_duration(duration)
                 
                 # Apply blur effect by reducing opacity
@@ -247,8 +245,8 @@ class SubtitleRenderer:
             print(f"Error creating subtitle clip: {e}")
             # Fallback to simple text clip
             return TextClip(
-                text,
-                fontsize=settings.get('font_size', 24),
+                text=text,
+                font_size=settings.get('font_size', 24),
                 color=settings.get('text_color', '#FFFFFF')
             ).set_start(start_time).set_duration(end_time - start_time)
     

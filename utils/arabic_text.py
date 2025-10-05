@@ -8,11 +8,7 @@ class ArabicTextProcessor:
     """
     
     def __init__(self):
-        self.configuration = {
-            'delete_harakat': False,  # Keep diacritics
-            'support_ligatures': True,  # Support Arabic ligatures
-            'support_ZWJ': True,  # Support Zero Width Joiner
-        }
+        pass
     
     def process_text(self, text):
         """
@@ -29,10 +25,7 @@ class ArabicTextProcessor:
             cleaned_text = self.clean_text(text)
             
             # Reshape Arabic text to connect letters properly
-            reshaped_text = arabic_reshaper.reshape(
-                cleaned_text, 
-                configuration=self.configuration
-            )
+            reshaped_text = arabic_reshaper.reshape(cleaned_text)
             
             # Apply bidirectional algorithm for proper RTL display
             bidi_text = get_display(reshaped_text)
