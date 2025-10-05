@@ -191,13 +191,15 @@ class SubtitleRenderer:
             
             duration = end_time - start_time
             
-            # Create main text clip
+            # Create main text clip with Arabic font
+            font_path = os.path.join(os.getcwd(), "assets/fonts/NotoSansArabic.ttf")
             txt_clip = TextClip(
                 text=processed_text,
                 font_size=font_size,
                 color=text_color,
                 stroke_color=stroke_color,
-                stroke_width=stroke_width
+                stroke_width=stroke_width,
+                font=font_path
             ).with_start(start_time).with_duration(duration)
             
             clips_to_composite = []
@@ -205,13 +207,15 @@ class SubtitleRenderer:
             # Add shadow if enabled - store explicit reference
             shadow_clip_ref = None
             if shadow_enabled and (shadow_offset_x != 0 or shadow_offset_y != 0):
-                # Create shadow clip (darker version of text)
+                # Create shadow clip (darker version of text) with Arabic font
+                font_path = os.path.join(os.getcwd(), "assets/fonts/NotoSansArabic.ttf")
                 shadow_clip_ref = TextClip(
                     text=processed_text,
                     font_size=font_size,
                     color='#000000',  # Black shadow
                     stroke_color='#000000',
-                    stroke_width=max(1, stroke_width - 1)
+                    stroke_width=max(1, stroke_width - 1),
+                    font=font_path
                 ).with_start(start_time).with_duration(duration)
                 
                 # Apply blur effect by reducing opacity
@@ -241,11 +245,13 @@ class SubtitleRenderer:
             
         except Exception as e:
             print(f"Error creating subtitle clip: {e}")
-            # Fallback to simple text clip
+            # Fallback to simple text clip with Arabic font
+            font_path = os.path.join(os.getcwd(), "assets/fonts/NotoSansArabic.ttf")
             return TextClip(
                 text=text,
                 font_size=settings.get('font_size', 24),
-                color=settings.get('text_color', '#FFFFFF')
+                color=settings.get('text_color', '#FFFFFF'),
+                font=font_path if os.path.exists(font_path) else None
             ).with_start(start_time).with_duration(end_time - start_time)
     
     def create_background_clip(self, text_clip, bg_color, opacity, start_time, duration):
